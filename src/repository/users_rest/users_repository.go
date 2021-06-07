@@ -1,4 +1,4 @@
-package rest
+package users_rest
 
 import (
 	"encoding/json"
@@ -9,11 +9,16 @@ import (
 )
 
 var (
+	restClient rest.RequestBuilder
+)
+
+func init() {
+	rest.StartMockupServer()
 	restClient = rest.RequestBuilder{
-		BaseURL: "https://api.bookstore.com",
+		BaseURL: "http://localhost:8080",
 		Timeout: 100 * time.Millisecond,
 	}
-)
+}
 
 type RestUsersRepository interface {
 	LoginUser(string, string) (*users.User, *errors.RestError)
@@ -33,7 +38,7 @@ func (r *usersRepository) LoginUser(email, password string) (*users.User, *error
 	}
 	response := restClient.Post("/users/login", req)
 	if response == nil || response.Response == nil {
-		return nil, errors.NewInternalServerError("invalid rest client response when trying to login user")
+		return nil, errors.NewInternalServerError("invalid users_rest client response when trying to login user")
 	}
 	if response.StatusCode > 299 {
 		var restErr errors.RestError

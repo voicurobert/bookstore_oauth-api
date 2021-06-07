@@ -29,9 +29,11 @@ func NewRepository() DBRepository {
 func (db *dbRepository) GetByID(id string) (*access_token.AccessToken, *errors.RestError) {
 	var result access_token.AccessToken
 
-	if err := cassandra.GetSession().
-		Query(queryGetAccessToken, id).
-		Scan(&result.AccessToken, &result.UserID, &result.ClientID, &result.Expires); err != nil {
+	if err := cassandra.GetSession().Query(queryGetAccessToken, id).Scan(
+		&result.AccessToken,
+		&result.UserID,
+		&result.ClientID,
+		&result.Expires); err != nil {
 		if err == gocql.ErrNotFound {
 			return nil, errors.NewNotFoundError("no access token found with given id")
 		}

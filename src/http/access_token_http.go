@@ -3,6 +3,7 @@ package http
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/voicurobert/bookstore_oauth-api/src/domain/access_token"
+	"github.com/voicurobert/bookstore_oauth-api/src/services"
 	"github.com/voicurobert/bookstore_oauth-api/src/utils/errors"
 	"net/http"
 )
@@ -10,14 +11,13 @@ import (
 type AccessTokenHandler interface {
 	GetByID(*gin.Context)
 	Create(*gin.Context)
-	UpdateExpirationTime(*gin.Context)
 }
 
 type accessTokenHandler struct {
-	service access_token.Service
+	service services.Service
 }
 
-func NewHandler(service access_token.Service) AccessTokenHandler {
+func NewAccessTokenHandler(service services.Service) AccessTokenHandler {
 	return &accessTokenHandler{service: service}
 }
 
@@ -28,28 +28,20 @@ func (handler *accessTokenHandler) GetByID(context *gin.Context) {
 		context.JSON(err.Status, err)
 		return
 	}
-
 	context.JSON(http.StatusOK, accessToken)
 }
 
 func (handler *accessTokenHandler) Create(c *gin.Context) {
-	var at access_token.AccessToken
-	if err := c.ShouldBind(&at); err != nil {
+	var request access_token.AccessTokenRequest
+	if err := c.ShouldBind(&request); err != nil {
 		restErr := errors.NewBadRequestError("invalid json body")
 		c.JSON(restErr.Status, restErr)
 		return
 	}
-
-	if err := handler.service.Create(at); err != nil {
+	accessToken, err := handler.service.Create(request)
+	if err != nil {
 		c.JSON(err.Status, err)
 		return
 	}
-	c.JSON(http.StatusCreated, at)
-}
-
-func (handler *accessTokenHandler) UpdateExpirationTime(c *gin.Context) {
-	var at access_token.AccessToken
-	if err := c.ShouldBind(&at); err != nil {
-
-	}
+	c.JSON(http.StatusCreated, accessToken)
 }

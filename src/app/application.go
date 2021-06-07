@@ -2,10 +2,10 @@ package app
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/voicurobert/bookstore_oauth-api/src/clients/cassandra"
-	"github.com/voicurobert/bookstore_oauth-api/src/domain/access_token"
 	"github.com/voicurobert/bookstore_oauth-api/src/http"
 	"github.com/voicurobert/bookstore_oauth-api/src/repository/db"
+	"github.com/voicurobert/bookstore_oauth-api/src/repository/users_rest"
+	"github.com/voicurobert/bookstore_oauth-api/src/services"
 )
 
 var (
@@ -13,13 +13,7 @@ var (
 )
 
 func StartApplication() {
-	session, dbErr := cassandra.GetSession()
-	if dbErr != nil {
-		panic(dbErr)
-	}
-	session.Close()
-	service := access_token.NewService(db.NewRepository())
-	atHandler := http.NewHandler(service)
+	atHandler := http.NewAccessTokenHandler(services.NewService(users_rest.NewRepository(), db.NewRepository()))
 
 	router.GET("/oauth/access_token/:access_token_id", atHandler.GetByID)
 	router.POST("/oauth/access_token", atHandler.Create)
